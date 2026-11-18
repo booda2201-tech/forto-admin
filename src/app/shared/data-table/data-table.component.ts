@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, ElementRef, input, signal, viewChild } from '@angular/core';
 import { BadgeTone, TONE_RGB, TableConfig } from '../../data/mock-data';
 import { CountUpDirective } from '../count-up.directive';
-import { IconComponent } from '../icon/icon.component';
+import { IconComponent, IconName } from '../icon/icon.component';
 
 @Component({
   selector: 'app-data-table',
@@ -159,12 +159,17 @@ import { IconComponent } from '../icon/icon.component';
     <!-- full details of one row (native dialog → top layer, nothing can cover it) -->
     <dialog #dlg class="dd" dir="rtl" [attr.aria-label]="'تفاصيل ' + config().title" (close)="selected.set(null)" (click)="onBackdrop($event)">
       @if (selected(); as r) {
-        <div class="dd-sheet glass-card relative flex max-h-[92vh] w-full max-w-xl flex-col overflow-hidden">
-          <header class="flex items-center gap-3.5 border-b border-white/[0.07] px-5 py-4 sm:px-6">
-            <span class="avatar !size-11 !text-base" aria-hidden="true">{{ initial(r[titleKey()]) }}</span>
+        <div class="dd-sheet glass-card relative flex max-h-[92vh] w-full max-w-2xl flex-col overflow-hidden">
+          <header class="dd-head flex items-center gap-4 px-5 py-5 sm:px-7">
+            <span class="avatar dd-avatar" aria-hidden="true">{{ initial(r[titleKey()]) }}</span>
             <div class="min-w-0 flex-1">
-              <h3 class="truncate text-lg font-extrabold">{{ r[titleKey()] }}</h3>
-              <p class="mt-0.5 truncate text-xs text-gray-500">{{ config().title }}</p>
+              <h3 class="truncate text-xl font-extrabold">{{ r[titleKey()] }}</h3>
+              <div class="mt-1.5 flex flex-wrap items-center gap-2">
+                @if (idKey(); as ik) {
+                  <span class="dd-chip" dir="ltr">{{ r[ik] }}</span>
+                }
+                <span class="text-xs text-gray-500">{{ config().title }}</span>
+              </div>
             </div>
             @if (badgeKey(); as bk) {
               <span class="badge shrink-0" [class.badge-live]="live(r[bk])" [style.--tone]="rgb(r[bk])">
@@ -175,22 +180,39 @@ import { IconComponent } from '../icon/icon.component';
               <app-icon name="close" [size]="16" />
             </button>
           </header>
-          <dl class="grid gap-3 overflow-y-auto p-5 sm:grid-cols-2 sm:p-6">
+
+          <dl class="dd-list grid gap-1 overflow-y-auto px-3 py-4 sm:grid-cols-2 sm:px-4">
             @for (c of detailFields(); track c.key) {
-              <div [class]="c.kind === 'money' ? 'dd-field sm:col-span-2' : 'dd-field'">
-                <dt class="dd-label">{{ c.label }}</dt>
-                <dd class="dd-value" [class.dd-money]="c.kind === 'money'">
-                  @if (c.kind === 'money') {
-                    <span dir="ltr">{{ money(r[c.key]) }}</span> <span class="text-xs font-medium text-gray-500">ج.م</span>
-                  } @else if (c.kind === 'mono') {
-                    <span dir="ltr">{{ show(c.key, r[c.key]) }}</span>
-                  } @else {
-                    {{ show(c.key, r[c.key]) }}
-                  }
-                </dd>
+              <div class="dd-row">
+                <span class="dd-ico"><app-icon [name]="iconFor(c.key, r[c.key])" [size]="17" /></span>
+                <div class="min-w-0">
+                  <dt class="dd-label">{{ c.label }}</dt>
+                  <dd class="dd-value">
+                    @if (c.key === 'phone') {
+                      <a class="dd-link" dir="ltr" [href]="'tel:' + r[c.key]">{{ show(c.key, r[c.key]) }}</a>
+                    } @else if (c.kind === 'mono') {
+                      <span dir="ltr">{{ show(c.key, r[c.key]) }}</span>
+                    } @else {
+                      {{ show(c.key, r[c.key]) }}
+                    }
+                  </dd>
+                </div>
               </div>
             }
           </dl>
+
+          @if (moneyCol(); as m) {
+            <footer class="dd-total flex items-center justify-between gap-4 px-5 py-4 sm:px-7">
+              <span class="flex items-center gap-2.5 text-sm font-semibold text-gray-400">
+                <span class="dd-ico"><app-icon name="receipt" [size]="17" /></span>
+                {{ m.label }}
+              </span>
+              <span class="dd-money inline-flex items-baseline gap-1.5">
+                <span dir="ltr">{{ money(r[m.key]) }}</span>
+                <span class="text-sm font-semibold text-gray-500">ج.م</span>
+              </span>
+            </footer>
+          }
         </div>
       }
     </dialog>
@@ -213,8 +235,12 @@ export class DataTableComponent {
 
   /** Everything about the selected row except its title and status (those sit in the popup header). */
   protected readonly detailFields = computed(() =>
-    this.config().columns.filter((c) => c.key !== this.titleKey() && c.kind !== 'badge'),
+    this.config().columns.filter((c) => c.key !== this.titleKey() && c.kind !== 'badge' && c.kind !== 'money' && c.key !== this.idKey()),
   );
+  /** The amount column becomes the popup's "total" footer. */
+  protected readonly moneyCol = computed(() => this.config().columns.find((c) => c.kind === 'money'));
+  /** A short reference code (e.g. #V-1048) shown as a chip in the popup header. */
+  protected readonly idKey = computed(() => this.config().columns.find((c) => c.key === 'id')?.key);
 
   protected open(row: Record<string, string | number>): void {
     this.selected.set(row);
@@ -226,6 +252,30 @@ export class DataTableComponent {
   /** Clicks on the dimmed area around the sheet land on the <dialog> itself. */
   protected onBackdrop(e: MouseEvent): void {
     if (e.target === this.dlg().nativeElement) this.close();
+  }
+
+  /** Small icon for a field, picked from its key (payment: from its value). */
+  protected iconFor(key: string, value: string | number): IconName {
+    if (key === 'payment') {
+      const pay: Record<string, IconName> = { 'نقدي': 'cash', 'فيزا': 'card', 'تحويل': 'transfer', 'محفظة': 'wallet' };
+      return pay[String(value)] ?? 'wallet';
+    }
+    const map: Record<string, IconName> = {
+      id: 'receipt',
+      phone: 'phone',
+      car: 'car',
+      plate: 'car',
+      service: 'wrench',
+      center: 'shield',
+      date: 'calendar',
+      time: 'clock',
+      tech: 'user',
+      category: 'services',
+      sku: 'receipt',
+      stock: 'products',
+      duration: 'clock',
+    };
+    return map[key] ?? 'note';
   }
 
   protected initial(v: string | number): string {
