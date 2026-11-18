@@ -1,0 +1,302 @@
+@if (customer(); as c) {
+  <div class="mx-auto flex max-w-7xl flex-col gap-8">
+    <a routerLink="/customers" class="inline-flex w-fit items-center gap-2 text-sm text-gray-400 transition hover:text-[#f7931e]">
+      <app-icon name="back" [size]="16" />
+      العودة لقائمة العملاء
+    </a>
+
+    <!-- Profile header -->
+    <section class="glass-card relative overflow-hidden p-6 sm:p-8">
+      <div class="pointer-events-none absolute -top-24 -left-16 size-72 rounded-full bg-[#f7931e]/15 blur-[90px]"></div>
+
+      <div class="relative flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+        <div class="flex items-center gap-5">
+          <div class="avatar grid size-20 shrink-0 place-items-center rounded-3xl text-2xl font-extrabold text-[#ffc27a]">
+            {{ initials(c.name) }}
+          </div>
+          <div>
+            <div class="flex flex-wrap items-center gap-3">
+              <h2 class="text-2xl font-extrabold sm:text-3xl">{{ c.name }}</h2>
+              <span
+                class="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold"
+                [class]="
+                  c.tier === 'vip'
+                    ? 'bg-[#f7931e]/15 text-[#f7931e] ring-1 ring-[#f7931e]/40'
+                    : c.tier === 'new'
+                      ? 'bg-emerald-400/10 text-emerald-300 ring-1 ring-emerald-400/30'
+                      : 'bg-white/5 text-gray-300 ring-1 ring-white/15'
+                "
+              >
+                @if (c.tier === 'vip') {
+                  <app-icon name="crown" [size]="13" />
+                }
+                {{ tierLabels[c.tier] }}
+              </span>
+            </div>
+            <div class="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-gray-400">
+              <span class="flex items-center gap-2">
+                <app-icon name="phone" [size]="15" />
+                <span dir="ltr">{{ c.phone }}</span>
+              </span>
+              <span class="flex items-center gap-2"><app-icon name="calendar" [size]="15" />عميل منذ {{ formatDate(c.joinedAt) }}</span>
+              <span>رقم العميل: <span dir="ltr" class="text-gray-300">{{ c.id }}</span></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex gap-3">
+          <a
+            [href]="toWhatsApp(c.phone)"
+            target="_blank"
+            rel="noopener"
+            class="flex h-11 items-center gap-2 rounded-xl bg-[#f7931e] px-5 text-sm font-bold text-black shadow-[0_0_24px_-4px_rgba(247,147,30,0.8)] transition hover:brightness-110"
+          >
+            <app-icon name="chat" [size]="18" />
+            واتساب
+          </a>
+          <a
+            [href]="'tel:' + c.phone.replace(' ', '')"
+            class="flex h-11 items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-5 text-sm font-medium text-gray-200 transition hover:border-white/25"
+          >
+            <app-icon name="phone" [size]="18" />
+            اتصال
+          </a>
+        </div>
+      </div>
+
+      @if (c.notes) {
+        <p class="relative mt-6 flex items-start gap-3 rounded-xl border border-amber-400/20 bg-amber-400/5 p-4 text-sm text-amber-200/90">
+          <app-icon name="note" [size]="18" class="mt-0.5 text-amber-300" />
+          {{ c.notes }}
+        </p>
+      }
+    </section>
+
+    <!-- Stats -->
+    @if (summary(); as s) {
+      <section class="grid grid-cols-2 gap-4 lg:grid-cols-4 lg:gap-6">
+        <div class="glass-card p-5">
+          <p class="text-xs text-gray-400">إجمالي الزيارات</p>
+          <p class="glow-brand mt-2 text-3xl font-extrabold">{{ s.visitsCount }}</p>
+          <p class="mt-1 text-xs text-gray-500">آخر زيارة {{ relativeDays(s.lastVisit) }}</p>
+        </div>
+        <div class="glass-card p-5">
+          <p class="text-xs text-gray-400">إجمالي الإنفاق</p>
+          <p class="glow-emerald mt-2 text-3xl font-extrabold">
+            {{ formatMoney(s.totalSpent) }} <span class="text-sm font-medium text-gray-400">ج.م</span>
+          </p>
+          <p class="mt-1 text-xs text-gray-500">الزيارات المكتملة فقط</p>
+        </div>
+        <div class="glass-card p-5">
+          <p class="text-xs text-gray-400">متوسط الفاتورة</p>
+          <p class="glow-sky mt-2 text-3xl font-extrabold">
+            {{ formatMoney(avgTicket()) }} <span class="text-sm font-medium text-gray-400">ج.م</span>
+          </p>
+          <p class="mt-1 text-xs text-gray-500">لكل زيارة</p>
+        </div>
+        <div class="glass-card p-5">
+          <p class="text-xs text-gray-400">متوسط التقييم</p>
+          <p class="glow-amber mt-2 flex items-center gap-2 text-3xl font-extrabold">
+            <span dir="ltr">{{ avgRating() ? avgRating().toFixed(1) : '—' }}</span>
+            <app-icon name="star" [size]="22" />
+          </p>
+          <p class="mt-1 text-xs text-gray-500">
+            @if (s.upcoming) {
+              حجز قادم: {{ formatDate(s.upcoming) }}
+            } @else {
+              لا يوجد حجز قادم
+            }
+          </p>
+        </div>
+      </section>
+    }
+
+    <div class="grid grid-cols-1 gap-6 xl:grid-cols-3">
+      <!-- Cars + spend (side column) -->
+      <aside class="flex flex-col gap-6 xl:order-2">
+        <section class="glass-card p-6">
+          <h3 class="text-lg font-bold">سيارات العميل</h3>
+          <p class="mt-1 text-xs text-gray-400">اختر سيارة لتصفية السجل</p>
+
+          <ul class="mt-5 flex flex-col gap-3">
+            <li>
+              <button
+                type="button"
+                (click)="carFilter.set('all')"
+                class="car-chip flex w-full items-center justify-between rounded-xl border border-white/10 bg-[var(--well-soft)] px-4 py-3 text-sm transition hover:border-white/25"
+                [class.active]="carFilter() === 'all'"
+              >
+                <span>كل السيارات</span>
+                <span class="text-gray-400">{{ allVisits().length }}</span>
+              </button>
+            </li>
+            @for (car of c.cars; track car.id) {
+              <li>
+                <button
+                  type="button"
+                  (click)="carFilter.set(car.id)"
+                  class="car-chip w-full rounded-xl border border-white/10 bg-[var(--well-soft)] p-4 text-start transition hover:border-white/25"
+                  [class.active]="carFilter() === car.id"
+                >
+                  <div class="flex items-center gap-3">
+                    <div class="grid size-10 place-items-center rounded-xl bg-[#f7931e]/12 text-[#f7931e] ring-1 ring-[#f7931e]/30">
+                      <app-icon name="car" [size]="20" />
+                    </div>
+                    <div class="min-w-0 flex-1">
+                      <p class="truncate font-semibold">{{ car.make }} {{ car.model }} {{ car.year }}</p>
+                      <p class="text-xs text-gray-400">{{ car.color }}</p>
+                    </div>
+                  </div>
+                  <div class="mt-3 flex items-center justify-between text-xs">
+                    <span class="rounded-md border border-white/15 bg-white/5 px-2 py-1 font-semibold tracking-wide">{{ car.plate }}</span>
+                    <span class="text-gray-400">{{ carVisitCount(car.id) }} زيارة مكتملة</span>
+                  </div>
+                </button>
+              </li>
+            }
+          </ul>
+        </section>
+
+        <section class="glass-card p-6">
+          <h3 class="text-lg font-bold">الإنفاق حسب القسم</h3>
+          <ul class="mt-5 flex flex-col gap-4">
+            @for (row of spend(); track row.section) {
+              <li>
+                <div class="mb-1.5 flex justify-between text-sm">
+                  <span class="text-gray-300">{{ row.label }}</span>
+                  <span class="font-semibold">{{ formatMoney(row.amount) }} <span class="text-xs text-gray-500">ج.م</span></span>
+                </div>
+                <div class="h-1.5 overflow-hidden rounded-full bg-white/10">
+                  <div
+                    class="h-full rounded-full bg-gradient-to-l from-[#ffc27a] to-[#f7931e] shadow-[0_0_10px_rgba(247,147,30,0.8)]"
+                    [style.width.%]="(row.amount / maxSpend()) * 100"
+                  ></div>
+                </div>
+              </li>
+            } @empty {
+              <li class="text-sm text-gray-500">لا توجد بيانات بعد.</li>
+            }
+          </ul>
+        </section>
+      </aside>
+
+      <!-- History -->
+      <section class="glass-card p-6 sm:p-8 xl:order-1 xl:col-span-2">
+        <header class="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <h3 class="text-lg font-bold">سجل الزيارات والحجوزات</h3>
+            <p class="mt-1 text-sm text-gray-400">
+              {{ visits().length }} من {{ allVisits().length }} عملية · الأحدث أولاً
+            </p>
+          </div>
+          <div class="flex flex-wrap gap-2" role="tablist" aria-label="تصفية حسب الحالة">
+            @for (f of statusFilters; track f.id) {
+              <button
+                type="button"
+                role="tab"
+                [attr.aria-selected]="statusFilter() === f.id"
+                (click)="statusFilter.set(f.id)"
+                class="rounded-lg border px-3 py-1.5 text-xs font-medium transition"
+                [class]="
+                  statusFilter() === f.id
+                    ? 'border-[#f7931e]/50 bg-[#f7931e]/15 text-[#f7931e]'
+                    : 'border-white/10 bg-white/5 text-gray-400 hover:text-white'
+                "
+              >
+                {{ f.label }}
+              </button>
+            }
+          </div>
+        </header>
+
+        @if (visits().length) {
+          <ol class="timeline mt-8 flex flex-col gap-5">
+            @for (v of visits(); track v.id) {
+              <li class="relative ps-10">
+                <span class="dot" [attr.data-status]="v.status"></span>
+
+                <article class="rounded-2xl border border-white/10 bg-[var(--well-soft)] p-5 transition hover:border-white/20">
+                  <div class="flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                      <p class="flex items-center gap-2 text-sm text-gray-400">
+                        <app-icon name="calendar-clock" [size]="15" />
+                        {{ formatDate(v.date, true) }}
+                        <span class="text-gray-600">·</span>
+                        {{ relativeDays(v.date) }}
+                      </p>
+                      <p class="mt-2 flex flex-wrap items-center gap-2 font-semibold">
+                        <app-icon name="car" [size]="16" class="text-[#f7931e]" />
+                        {{ carName(v.carId) }}
+                        <span class="rounded-md border border-white/15 bg-white/5 px-1.5 py-0.5 text-[11px] font-medium text-gray-300">
+                          {{ carPlate(v.carId) }}
+                        </span>
+                      </p>
+                    </div>
+
+                    <div class="flex items-center gap-2">
+                      <span class="rounded-full bg-white/5 px-2.5 py-1 text-[11px] text-gray-400">
+                        {{ v.source === 'booking' ? 'حجز مسبق' : 'حضور مباشر' }}
+                      </span>
+                      <span class="status rounded-full px-3 py-1 text-xs font-semibold" [attr.data-status]="v.status">
+                        {{ statusLabels[v.status] }}
+                      </span>
+                    </div>
+                  </div>
+
+                  <ul class="mt-4 flex flex-wrap gap-2">
+                    @for (s of v.services; track s.id) {
+                      <li class="flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-xs">
+                        <span class="text-gray-200">{{ s.name }}</span>
+                        <span class="text-gray-500">{{ formatMoney(s.price) }}</span>
+                      </li>
+                    }
+                  </ul>
+
+                  @if (v.notes) {
+                    <p class="mt-4 flex items-start gap-2 text-sm text-gray-400">
+                      <app-icon name="note" [size]="15" class="mt-0.5 text-gray-500" />
+                      {{ v.notes }}
+                    </p>
+                  }
+
+                  <div class="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-white/10 pt-4 text-sm">
+                    <div class="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-gray-400">
+                      <span class="flex items-center gap-1.5"><app-icon name="wrench" [size]="14" />{{ v.technician }}</span>
+                      @if (v.paymentMethod) {
+                        <span class="flex items-center gap-1.5"><app-icon name="receipt" [size]="14" />{{ paymentLabels[v.paymentMethod] }}</span>
+                      }
+                      @if (v.rating) {
+                        <span class="flex items-center gap-0.5 text-amber-300">
+                          @for (st of stars(v.rating); track st) {
+                            <app-icon name="star" [size]="13" />
+                          }
+                        </span>
+                      }
+                    </div>
+                    <p
+                      class="text-lg font-extrabold"
+                      [class]="v.status === 'cancelled' ? 'text-gray-500 line-through' : 'text-[#f7931e]'"
+                    >
+                      {{ formatMoney(v.total) }} <span class="text-xs font-medium text-gray-500">ج.م</span>
+                    </p>
+                  </div>
+                </article>
+              </li>
+            }
+          </ol>
+        } @else {
+          <div class="mt-8 grid place-items-center rounded-2xl border border-dashed border-white/10 p-12 text-center">
+            <p class="font-semibold">مفيش عمليات مطابقة للتصفية</p>
+            <p class="mt-1 text-sm text-gray-400">غيّر السيارة أو الحالة لعرض باقي السجل.</p>
+          </div>
+        }
+      </section>
+    </div>
+  </div>
+} @else {
+  <section class="glass-card mx-auto grid max-w-xl place-items-center p-12 text-center">
+    <h2 class="text-xl font-bold">العميل غير موجود</h2>
+    <p class="mt-2 text-sm text-gray-400">ربما تم حذف الملف أو أن الرابط غير صحيح.</p>
+    <a routerLink="/customers" class="mt-6 rounded-xl bg-[#f7931e] px-5 py-2.5 text-sm font-bold text-black">العودة للعملاء</a>
+  </section>
+}

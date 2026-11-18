@@ -1,0 +1,248 @@
+<!-- Root wrapper: RTL grid → first column (sidebar) sits on the right -->
+<div
+  dir="rtl"
+  class="shell relative min-h-screen overflow-x-clip bg-[var(--bg)] px-3 pb-[calc(6.5rem+env(safe-area-inset-bottom))] pt-0 text-white sm:px-5 lg:grid lg:grid-cols-[var(--sw)_minmax(0,1fr)] lg:gap-4 lg:p-4"
+  [style.--sw]="collapsed() ? '5.25rem' : '16rem'"
+>
+  <app-command-palette [(open)]="paletteOpen" />
+
+  <!-- Ambient aurora + dotted grid behind everything -->
+  <div class="aurora" aria-hidden="true"><i></i><i></i><i></i></div>
+
+  <!-- Sidebar (laptop / desktop only): floating liquid-glass dock. Phones & tablets use the bottom tab bar. -->
+  <aside
+    class="sidebar hidden w-full flex-col gap-4 rounded-[1.75rem] p-3.5 lg:sticky lg:top-4 lg:flex lg:h-[calc(100vh-2rem)]"
+    [class.rail]="collapsed()"
+  >
+    <!-- Brand -->
+    <div class="brand-plate flex items-center justify-between gap-2 px-0.5 pt-0.5" style="--i: 0">
+      <div class="flex items-center gap-3">
+        <img src="brand/logo.jpg" alt="Forto" width="44" height="44" class="brand-mark size-11 shrink-0 rounded-2xl object-cover" />
+        <div class="rail-hide leading-tight">
+          <p class="text-[17px] font-extrabold tracking-wide"><span class="brand-name">فورتو</span> <span class="text-[#f7931e]">Forto</span></p>
+          <p class="mt-0.5 text-[10px] font-semibold tracking-[0.22em] text-gray-500">CAR CARE</p>
+        </div>
+      </div>
+    </div>
+
+    <p class="section-label rail-hide">القائمة</p>
+
+    <nav class="nav relative flex flex-1 flex-col content-start gap-1.5 overflow-y-auto overflow-x-hidden" [style.--idx]="activeIndex()">
+      <!-- liquid pill that glides to the active page -->
+      <span class="nav-indicator" [class.nav-indicator-off]="activeIndex() < 0" aria-hidden="true"></span>
+
+      @for (item of navItems; track item.path; let i = $index) {
+        <a
+          [routerLink]="item.path"
+          routerLinkActive="nav-active"
+          class="nav-item group relative flex items-center gap-3 rounded-2xl px-3.5 text-sm font-semibold"
+          [style.--i]="i + 1"
+        >
+          <app-icon [name]="item.icon" [size]="19" class="nav-icon" />
+          <span class="rail-hide flex-1 truncate">{{ item.label }}</span>
+          @if (item.badge) {
+            <span class="nav-badge">{{ item.badge }}</span>
+          }
+        </a>
+      }
+    </nav>
+
+    <!-- Live clock card -->
+    <div class="clock-card rounded-2xl p-3.5" aria-label="الوقت الحالي">
+      <div class="rail-hide mb-2.5 flex items-center justify-between text-[10.5px] font-semibold">
+        <span class="flex items-center gap-1.5 text-emerald-400">
+          <span class="relative flex size-1.5">
+            <span class="absolute inline-flex size-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
+            <span class="relative inline-flex size-1.5 rounded-full bg-emerald-400"></span>
+          </span>
+          مفتوح الآن
+        </span>
+        <span class="text-gray-500">{{ date() }}</span>
+      </div>
+      <div class="clock-row flex items-baseline justify-center gap-1" dir="ltr">
+        <span class="clock-digits">{{ clock().slice(0, 2) }}</span>
+        <span class="clock-digits clock-colon rail-hide">:</span>
+        <span class="clock-digits">{{ clock().slice(3, 5) }}</span>
+        <span class="rail-hide ms-1 text-xs font-semibold text-gray-500">{{ clock().slice(6, 8) }}</span>
+      </div>
+      <div class="clock-bar rail-hide mt-3" aria-hidden="true"><span [style.width.%]="secondsPct()"></span></div>
+    </div>
+
+    <button type="button" (click)="logout()" class="logout flex items-center justify-center gap-2 rounded-2xl py-3 text-sm font-bold">
+      <app-icon name="logout" [size]="17" />
+      <span class="rail-hide">تسجيل الخروج</span>
+    </button>
+  </aside>
+  <!-- Main area -->
+  <div class="relative z-10 flex min-w-0 flex-col gap-4">
+    <!-- Floating top bar -->
+    <header
+      class="glass-card topbar sticky top-0 z-20 -mx-3 flex items-center justify-between gap-3 rounded-t-none rounded-b-[1.4rem] px-4 py-2.5 sm:-mx-5 sm:px-5 lg:top-4 lg:mx-0 lg:rounded-[1.4rem] lg:py-3"
+    >
+      <div class="flex min-w-0 items-center gap-3">
+        <!-- phones & tablets: brand mark in place of the sidebar -->
+        <img src="brand/logo.jpg" alt="Forto" width="40" height="40" class="brand-mark size-10 shrink-0 rounded-xl object-cover lg:hidden" />
+        <!-- desktop: collapse the sidebar to an icon rail (Ctrl+B) -->
+        <button
+          type="button"
+          class="keycap rail-toggle hidden size-10 shrink-0 place-items-center rounded-xl text-gray-300 lg:grid"
+          [attr.aria-label]="collapsed() ? 'تثبيت القائمة' : 'تحويل القائمة لشريط نحيف'"
+          [attr.aria-pressed]="collapsed()"
+          title="شريط نحيف / تثبيت القائمة (Ctrl+B)"
+          (click)="toggleRail()"
+        >
+          <svg class="size-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect x="3" y="4" width="18" height="16" rx="3" />
+            <path d="M15 4v16" />
+            <path class="rail-chevron" d="m9 9 3 3-3 3" />
+          </svg>
+        </button>
+        <div class="min-w-0">
+          <h1 class="truncate text-base font-bold sm:text-lg">مرحباً بك، د. عبدالله</h1>
+          <p class="hidden truncate text-xs text-gray-400 md:block">تابع أداء مركز Forto وحلّل بياناتك بسهولة</p>
+        </div>
+      </div>
+
+      <!-- opens the command palette (Ctrl+K or "/") -->
+      <button
+        type="button"
+        class="inset-well search-btn group mx-2 hidden h-11 min-w-0 max-w-md flex-1 items-center gap-2.5 rounded-xl px-3.5 text-start md:flex"
+        aria-label="بحث سريع"
+        (click)="paletteOpen.set(true)"
+      >
+        <app-icon name="search" [size]="16" class="text-gray-500 transition-colors group-hover:text-[#f7931e]" />
+        <span class="min-w-0 flex-1 truncate text-sm text-gray-500">ابحث عن عميل أو زيارة أو خدمة...</span>
+        <span class="flex items-center gap-1" dir="ltr">
+          <kbd class="grid h-6 place-items-center rounded-md border border-white/10 bg-white/5 px-1.5 text-[11px] text-gray-400">Ctrl</kbd>
+          <kbd class="grid size-6 place-items-center rounded-md border border-white/10 bg-white/5 text-[11px] text-gray-400">K</kbd>
+        </span>
+      </button>
+
+      <div class="flex items-center gap-2 sm:gap-3">
+        <button
+          type="button"
+          aria-label="بحث"
+          class="keycap grid size-10 place-items-center rounded-xl text-gray-300 md:hidden"
+          (click)="paletteOpen.set(true)"
+        >
+          <app-icon name="search" [size]="18" />
+        </button>
+        <button
+          type="button"
+          class="keycap theme-toggle grid size-10 place-items-center rounded-xl text-gray-300"
+          [attr.aria-label]="theme.theme() === 'dark' ? 'التبديل إلى الوضع الفاتح' : 'التبديل إلى الوضع الداكن'"
+          [attr.title]="theme.theme() === 'dark' ? 'الوضع الفاتح' : 'الوضع الداكن'"
+          (click)="theme.toggle($event)"
+        >
+          <span class="theme-icon" [class.is-light]="theme.theme() === 'light'">
+            <app-icon name="moon" [size]="18" class="t-moon" />
+            <app-icon name="sun" [size]="18" class="t-sun" />
+          </span>
+        </button>
+        <button
+          type="button"
+          aria-label="الإشعارات"
+          class="keycap relative grid size-10 place-items-center rounded-xl text-gray-300"
+        >
+          <app-icon name="bell" [size]="18" />
+          <span class="absolute top-2 left-2 size-2 animate-pulse rounded-full bg-[#f7931e] ring-2 ring-[var(--surface)]"></span>
+        </button>
+
+        <!-- phones & tablets: the avatar opens the account sheet (search / logout) -->
+        <button
+          type="button"
+          class="flex items-center gap-2.5 rounded-xl py-1 ps-3 lg:pointer-events-none"
+          aria-label="الحساب"
+          (click)="accountOpen.set(true)"
+        >
+          <div class="hidden text-end leading-tight sm:block">
+            <p class="text-sm font-bold">د. عبدالله</p>
+            <p class="text-[11px] text-gray-500">مدير النظام</p>
+          </div>
+          <div
+            class="avatar grid size-10 place-items-center rounded-full bg-gradient-to-br from-[#ff9a3c] to-[#d2570a] text-sm font-extrabold text-white"
+          >
+            ع
+          </div>
+        </button>
+      </div>
+    </header>
+
+    <main class="relative mx-auto min-h-[60vh] w-full max-w-[1500px] flex-1 px-0.5 pb-6 pt-4 lg:pt-3">
+      <router-outlet />
+
+      <!-- Route skeleton: shimmers briefly while the new page reveals underneath -->
+      @if (loading()) {
+        <div class="route-skeleton absolute inset-0 z-10 flex flex-col gap-6 bg-[var(--bg)]" aria-hidden="true">
+          <div class="skeleton h-14 w-64 max-w-full"></div>
+          <div class="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
+            <div class="skeleton h-40"></div>
+            <div class="skeleton h-40"></div>
+            <div class="skeleton hidden h-40 xl:block"></div>
+          </div>
+          <div class="skeleton h-72"></div>
+        </div>
+      }
+    </main>
+  </div>
+
+  <!-- Phones & tablets: app-style bottom tab bar -->
+  <nav class="tabbar lg:hidden" aria-label="التنقل الرئيسي" [style.--idx]="tabIndex()" [style.--n]="tabItems.length + 1">
+    <span class="tab-pill" [class.tab-pill-off]="tabIndex() < 0" aria-hidden="true"></span>
+    @for (item of tabItems; track item.path) {
+      <a [routerLink]="item.path" routerLinkActive="tab-active" class="tab" [attr.aria-label]="item.label">
+        <span class="tab-icon">
+          <app-icon [name]="item.icon" [size]="22" />
+          @if (item.badge) {
+            <span class="tab-badge">{{ item.badge }}</span>
+          }
+        </span>
+        <span class="tab-label">{{ item.short }}</span>
+      </a>
+    }
+    <button type="button" class="tab" [class.tab-active]="tabIndex() === tabItems.length" aria-label="المزيد" (click)="accountOpen.set(true)">
+      <span class="tab-icon"><app-icon name="menu" [size]="22" /></span>
+      <span class="tab-label">المزيد</span>
+    </button>
+  </nav>
+
+  <!-- Account bottom sheet (phones & tablets) -->
+  @if (accountOpen()) {
+    <div class="fixed inset-0 z-[60] lg:hidden" dir="rtl" role="dialog" aria-modal="true" aria-label="الحساب">
+      <button type="button" class="sheet-backdrop absolute inset-0 cursor-default" aria-label="إغلاق" (click)="accountOpen.set(false)"></button>
+      <div class="sheet">
+        <span class="sheet-grip" aria-hidden="true"></span>
+        <div class="flex items-center gap-3.5 px-1 pb-4">
+          <div class="avatar grid size-14 shrink-0 place-items-center rounded-full bg-gradient-to-br from-[#ff9a3c] to-[#d2570a] text-lg font-extrabold">ع</div>
+          <div class="leading-tight">
+            <p class="text-base font-bold">د. عبدالله</p>
+            <p class="mt-0.5 text-xs text-gray-500">مدير النظام · Forto Car Care</p>
+          </div>
+        </div>
+        <p class="section-label mb-2.5">الصفحات</p>
+        <div class="mb-4 grid grid-cols-3 gap-2.5">
+          @for (item of moreItems; track item.path) {
+            <a [routerLink]="item.path" routerLinkActive="more-active" class="more-tile">
+              <app-icon [name]="item.icon" [size]="24" />
+              <span>{{ item.short }}</span>
+            </a>
+          }
+        </div>
+        <div class="grid gap-2.5">
+          <button type="button" class="sheet-row" (click)="accountOpen.set(false); paletteOpen.set(true)">
+            <app-icon name="search" [size]="19" />
+            <span class="flex-1 text-start">بحث سريع</span>
+          </button>
+          <button type="button" class="sheet-row" (click)="theme.toggle($event)">
+            <app-icon [name]="theme.theme() === 'dark' ? 'sun' : 'moon'" [size]="19" />
+            <span class="flex-1 text-start">{{ theme.theme() === 'dark' ? 'الوضع الفاتح' : 'الوضع الداكن' }}</span>
+          </button>
+          <button type="button" class="sheet-row sheet-row-danger" (click)="accountOpen.set(false); logout()">
+            <app-icon name="logout" [size]="19" />
+            <span class="flex-1 text-start">تسجيل الخروج</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

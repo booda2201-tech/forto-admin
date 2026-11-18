@@ -1,0 +1,134 @@
+<div class="mx-auto flex max-w-7xl flex-col gap-8">
+  <div>
+    <h2 class="text-2xl font-extrabold sm:text-3xl">العملاء والسيارات</h2>
+    <p class="mt-1 text-sm text-gray-400">اضغط على أي عميل لفتح ملفه وسجل زياراته وحجوزاته بالكامل</p>
+  </div>
+
+  <!-- Summary -->
+  <section class="grid grid-cols-2 gap-4 lg:grid-cols-4 lg:gap-6">
+    <div class="glass-card p-5">
+      <p class="text-xs text-gray-400">إجمالي العملاء</p>
+      <p class="glow-brand mt-2 text-3xl font-extrabold">{{ totals().customers }}</p>
+    </div>
+    <div class="glass-card p-5">
+      <p class="text-xs text-gray-400">عملاء VIP</p>
+      <p class="glow-amber mt-2 text-3xl font-extrabold">{{ totals().vip }}</p>
+    </div>
+    <div class="glass-card p-5">
+      <p class="text-xs text-gray-400">السيارات المسجلة</p>
+      <p class="glow-sky mt-2 text-3xl font-extrabold">{{ totals().cars }}</p>
+    </div>
+    <div class="glass-card p-5">
+      <p class="text-xs text-gray-400">إجمالي الإنفاق</p>
+      <p class="glow-emerald mt-2 text-3xl font-extrabold">
+        {{ formatMoney(totals().spent) }} <span class="text-sm font-medium text-gray-400">ج.م</span>
+      </p>
+    </div>
+  </section>
+
+  <!-- Toolbar -->
+  <section class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <label
+      class="glass-card flex h-12 flex-1 items-center gap-3 px-4 focus-within:border-[#f7931e]/50 sm:max-w-md"
+    >
+      <app-icon name="search" [size]="18" class="text-gray-400" />
+      <input
+        type="search"
+        [value]="query()"
+        (input)="onSearch($event)"
+        placeholder="ابحث بالاسم أو الهاتف أو رقم اللوحة أو الموديل"
+        class="w-full bg-transparent text-sm text-white placeholder:text-gray-500 focus:outline-none"
+      />
+    </label>
+
+    <div class="flex gap-2" role="tablist" aria-label="تصفية حسب التصنيف">
+      @for (f of filters; track f.id) {
+        <button
+          type="button"
+          role="tab"
+          [attr.aria-selected]="tier() === f.id"
+          (click)="tier.set(f.id)"
+          class="rounded-xl border px-4 py-2 text-sm font-medium transition"
+          [class]="
+            tier() === f.id
+              ? 'border-[#f7931e]/50 bg-[#f7931e]/15 text-[#f7931e] shadow-[0_0_20px_-6px_rgba(247,147,30,0.6)]'
+              : 'border-white/10 bg-white/5 text-gray-400 hover:text-white'
+          "
+        >
+          {{ f.label }}
+        </button>
+      }
+    </div>
+  </section>
+
+  <!-- Customers -->
+  @if (rows().length) {
+    <section class="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
+      @for (r of rows(); track r.customer.id) {
+        <a
+          [routerLink]="['/customers', r.customer.id]"
+          class="glass-card customer-card group flex flex-col gap-5 p-6"
+        >
+          <div class="flex items-start gap-4">
+            <div class="avatar grid size-14 shrink-0 place-items-center rounded-2xl text-lg font-bold text-[#ffc27a]">
+              {{ initials(r.customer.name) }}
+            </div>
+            <div class="min-w-0 flex-1">
+              <div class="flex items-start justify-between gap-2">
+                <h3 class="truncate text-base font-bold">{{ r.customer.name }}</h3>
+                <app-icon
+                  name="chevron"
+                  [size]="18"
+                  class="text-gray-500 transition group-hover:-translate-x-1 group-hover:text-[#f7931e]"
+                />
+              </div>
+              <p class="mt-1 text-sm text-gray-400" dir="ltr" style="text-align: right">{{ r.customer.phone }}</p>
+              <span
+                class="tier mt-2 inline-block rounded-full px-2.5 py-0.5 text-[11px] font-semibold"
+                [attr.data-tier]="r.customer.tier"
+              >
+                {{ tierLabels[r.customer.tier] }}
+              </span>
+            </div>
+          </div>
+
+          <ul class="flex flex-wrap gap-2">
+            @for (car of r.customer.cars; track car.id) {
+              <li class="flex items-center gap-1.5 rounded-lg border border-white/10 bg-[var(--well-soft)] px-2.5 py-1 text-xs text-gray-300">
+                <app-icon name="car" [size]="13" class="text-[#f7931e]" />
+                {{ car.make }} {{ car.model }} {{ car.year }}
+              </li>
+            }
+          </ul>
+
+          <div class="grid grid-cols-3 gap-2 border-t border-white/10 pt-4 text-center">
+            <div>
+              <p class="text-lg font-extrabold">{{ r.visitsCount }}</p>
+              <p class="text-[11px] text-gray-500">زيارة</p>
+            </div>
+            <div>
+              <p class="text-lg font-extrabold text-[#f7931e]">{{ formatMoney(r.totalSpent) }}</p>
+              <p class="text-[11px] text-gray-500">ج.م إنفاق</p>
+            </div>
+            <div>
+              <p class="text-sm font-bold leading-7">{{ relativeDays(r.lastVisit) }}</p>
+              <p class="text-[11px] text-gray-500">آخر زيارة</p>
+            </div>
+          </div>
+
+          @if (r.upcoming) {
+            <p class="flex items-center gap-2 rounded-lg bg-amber-400/10 px-3 py-2 text-xs text-amber-300">
+              <app-icon name="calendar-clock" [size]="14" />
+              حجز قادم · {{ formatDate(r.upcoming) }}
+            </p>
+          }
+        </a>
+      }
+    </section>
+  } @else {
+    <section class="glass-card grid place-items-center p-12 text-center">
+      <p class="font-semibold">مفيش نتائج مطابقة</p>
+      <p class="mt-1 text-sm text-gray-400">جرّب كلمة بحث مختلفة أو غيّر التصنيف.</p>
+    </section>
+  }
+</div>

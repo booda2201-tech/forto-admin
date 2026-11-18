@@ -1,0 +1,727 @@
+// Forto brand: orange #F7931E on near-black. Visual language: dark "keycap" panels + walnut wood frame.
+:root {
+  color-scheme: dark;
+  // ---- theme tokens (dark). Light overrides live in the `html[data-theme='light']` block at the bottom. ----
+  --bg: #0c0d10;
+  --ink: #fff; // primary text
+  --text-2: #b4b6bd;
+  --text-3: #8b8d96;
+  --text-4: #6b6d78;
+  --tint: 255 255 255; // overlay tint for borders / hover fills
+  --hi: 255 255 255; // top-edge highlights
+  --shade: 0 0 0; // shadows
+  --card-a: #17181d;
+  --card-b: #121318;
+  --well: #0e0f12; // inset fields & tracks
+  --well-soft: rgb(0 0 0 / 0.2);
+  --pop: #1c1d22; // tooltips, sheets, palette
+  --surface: #121317; // rings / cut-outs that match the card colour
+  --chip-a: #34353c;
+  --chip-b: #232429;
+  --chip2-a: #25262c;
+  --chip2-b: #17181d;
+  --glass: 14 15 20;
+  --overlay: 5 5 7;
+  --sk-a: #15161a;
+  --sk-b: #24262d;
+  --brand-ink: #f7931e; // brand colour when used as text
+  --brand-soft: #ffb25a;
+  --c-emerald: #70be96;
+  --c-amber: #e2aa50;
+  --c-sky: #8ca3be;
+  --c-rose: #e8b4b9;
+  --tone-mix: 100%; // how much of a status tone colour is kept in text (light mode darkens it)
+  --aurora-1: 0.07;
+  --aurora-2: 0.1;
+  --aurora-3: 0.08;
+  --glow-brand: 247 147 30;
+  --glow-emerald: 112 190 150;
+  --glow-amber: 226 170 80;
+  --glow-sky: 140 163 190;
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: 'Cairo', 'Tajawal', ui-sans-serif, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+// ---------- Surfaces ----------
+// Dark raised panel (cards, header, tables)
+// --spot (0→1) + --mx/--my are driven by a pointer listener in the admin layout: a soft orange
+// spotlight follows the cursor across any card.
+@property --spot {
+  syntax: '<number>';
+  inherits: false;
+  initial-value: 0;
+}
+
+.glass-card {
+  background:
+    radial-gradient(
+      380px circle at var(--mx, 50%) var(--my, 50%),
+      rgb(247 147 30 / calc(var(--spot) * 0.13)),
+      transparent 65%
+    ),
+    linear-gradient(180deg, var(--card-a) 0%, var(--card-b) 100%);
+  border: 1px solid rgb(var(--tint) / 0.06);
+  border-radius: 1.25rem;
+  box-shadow:
+    inset 0 1px 0 0 rgb(var(--hi) / 0.05),
+    0 2px 0 0 rgb(var(--shade) / 0.45),
+    0 22px 34px -22px rgb(var(--shade) / 0.9);
+  transition:
+    --spot 0.4s ease,
+    border-color 0.3s ease,
+    transform 0.35s var(--ease-out),
+    box-shadow 0.35s ease;
+
+  &:hover {
+    border-color: rgb(var(--tint) / 0.12);
+  }
+}
+
+// Inset field / track
+.inset-well {
+  background: var(--well);
+  border: 1px solid rgb(var(--tint) / 0.05);
+  box-shadow: inset 0 2px 6px rgb(var(--shade) / 0.65);
+}
+
+// Walnut wood frame
+.wood {
+  background:
+    repeating-linear-gradient(90deg, transparent 0 5px, rgb(var(--shade) / 0.14) 5px 6px, rgb(255 190 120 / 0.04) 6px 11px),
+    repeating-linear-gradient(0deg, transparent 0 46px, rgb(var(--shade) / 0.1) 46px 47px),
+    linear-gradient(90deg, #35190c 0%, #6a3b1c 18%, #4a2713 42%, #6f4121 68%, #3b1d0e 100%);
+  box-shadow:
+    inset 0 0 0 1px rgb(255 205 150 / 0.14),
+    inset 0 2px 10px rgb(var(--shade) / 0.6),
+    0 24px 40px -14px rgb(var(--shade) / 0.9);
+}
+
+// Raised keycap button
+// (kept the class name; now a soft glass chip instead of a bevelled key)
+.keycap {
+  background: linear-gradient(160deg, rgb(var(--tint) / 0.08), rgb(var(--tint) / 0.03));
+  border: 1px solid rgb(var(--tint) / 0.09);
+  box-shadow:
+    inset 0 1px 0 rgb(var(--hi) / 0.08),
+    0 8px 18px -10px rgb(var(--shade) / 0.8);
+  transition:
+    transform 0.25s var(--ease-out),
+    box-shadow 0.25s ease,
+    border-color 0.25s ease,
+    color 0.25s ease;
+
+  &:hover {
+    transform: translateY(-1px);
+    border-color: rgb(247 147 30 / 0.45);
+    box-shadow:
+      inset 0 1px 0 rgb(var(--hi) / 0.1),
+      0 10px 24px -12px rgb(247 147 30 / 0.3);
+  }
+  &:active {
+    transform: scale(0.95);
+  }
+}
+
+// ---------- Glow helpers ----------
+.glow-brand {
+  color: var(--brand-ink);
+}
+.glow-emerald {
+  color: var(--c-emerald);
+}
+.glow-amber {
+  color: var(--c-amber);
+}
+.glow-sky {
+  color: var(--c-sky);
+}
+
+// ---------- Motion ----------
+// Staggered entrance. Set `--i` per element (style="--i: 2"). Base delay lets the route skeleton play first.
+.reveal {
+  animation: reveal 0.7s var(--ease-out) calc(0.3s + var(--i, 0) * 80ms) backwards;
+}
+
+@keyframes reveal {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.975);
+    filter: blur(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+}
+
+@keyframes slide-in {
+  from {
+    opacity: 0;
+    transform: translateX(26px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes shimmer {
+  to {
+    background-position: -200% 0;
+  }
+}
+
+@keyframes grow-y {
+  from {
+    transform: scaleY(0);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+
+@keyframes wipe {
+  from {
+    clip-path: inset(-10% 100% -10% -5%);
+  }
+  to {
+    clip-path: inset(-10% -5% -10% -5%);
+  }
+}
+
+@keyframes grow-x {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@keyframes pop-in {
+  from {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+// Slow ambient drift for the aurora background blobs
+@keyframes drift {
+  to {
+    transform: translate3d(9vw, 7vh, 0) scale(1.18);
+  }
+}
+
+// Light travelling along an edge (top bar underline)
+@keyframes sweep {
+  to {
+    background-position: -200% 0;
+  }
+}
+
+@keyframes glow-pulse {
+  50% {
+    box-shadow: 0 0 18px 4px rgb(247 147 30 / 0.95);
+  }
+}
+
+@keyframes blink {
+  50% {
+    opacity: 0.2;
+  }
+}
+
+@keyframes skeleton-out {
+  to {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+
+.skeleton {
+  border-radius: 1.25rem;
+  background: linear-gradient(100deg, var(--sk-a) 30%, var(--sk-b) 50%, var(--sk-a) 70%);
+  background-size: 200% 100%;
+  animation: shimmer 1.3s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+// Slim dark scrollbars
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(var(--tint) / 0.15) transparent;
+}
+
+// Small / medium screens: hide scrollbars entirely (scrolling still works)
+@media (max-width: 1280px) {
+  html,
+  body,
+  * {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+
+    &::-webkit-scrollbar {
+      display: none;
+      width: 0;
+      height: 0;
+    }
+  }
+}
+
+// =====================================================================
+// Phones & tablets: native-app feel (bottom tab bar, account sheet, no hover chrome)
+// =====================================================================
+@media (max-width: 1023.98px) {
+  html,
+  body {
+    overscroll-behavior-y: none;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-text-size-adjust: 100%;
+  }
+  button,
+  a,
+  [role='tab'] {
+    touch-action: manipulation;
+  }
+  .topbar,
+  .tabbar,
+  .sheet {
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  // sticky app bar: full-bleed frosted glass instead of a floating card
+  .topbar {
+    padding-top: calc(0.625rem + env(safe-area-inset-top));
+    border-top: 0;
+    border-inline: 0;
+    background: rgb(var(--glass) / 0.82);
+    backdrop-filter: blur(18px) saturate(1.5);
+    -webkit-backdrop-filter: blur(18px) saturate(1.5);
+  }
+
+  // lighter background on touch devices
+  .aurora i {
+    animation: none;
+    filter: blur(80px);
+  }
+}
+
+.tabbar {
+  position: fixed;
+  z-index: 40;
+  inset-inline: 0.75rem;
+  bottom: max(0.75rem, env(safe-area-inset-bottom));
+  margin-inline: auto;
+  max-width: 36rem;
+  display: grid;
+  grid-template-columns: repeat(var(--n, 6), minmax(0, 1fr));
+  padding: 0.4rem;
+  border-radius: 1.75rem;
+  background:
+    linear-gradient(165deg, rgb(var(--tint) / 0.08), rgb(var(--tint) / 0.02) 50%, rgb(var(--tint) / 0.04)),
+    rgb(var(--glass) / 0.8);
+  backdrop-filter: blur(24px) saturate(1.7);
+  -webkit-backdrop-filter: blur(24px) saturate(1.7);
+  box-shadow:
+    inset 0 0 0 1px rgb(var(--tint) / 0.1),
+    inset 0 1px 0 rgb(var(--hi) / 0.12),
+    0 24px 48px -12px rgb(var(--shade) / 0.9),
+    0 0 40px -22px rgb(247 147 30 / 0.4);
+  animation: tabbar-in 0.7s var(--ease-out) 0.2s backwards;
+}
+
+@media (min-width: 1024px) {
+  .tabbar {
+    display: none;
+  }
+}
+
+@keyframes tabbar-in {
+  from {
+    opacity: 0;
+    transform: translateY(120%);
+  }
+}
+
+// pill that glides under the active tab (the bar is always dir=rtl, so tabs run right → left)
+.tab-pill {
+  position: absolute;
+  top: 0.4rem;
+  bottom: 0.4rem;
+  inset-inline-start: 0.4rem;
+  width: calc((100% - 0.8rem) / var(--n, 6));
+  border-radius: 1.3rem;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgb(247 147 30 / 0.26), rgb(247 147 30 / 0.08));
+  box-shadow:
+    inset 0 0 0 1px rgb(247 147 30 / 0.4),
+    inset 0 1px 0 rgb(var(--hi) / 0.14),
+    0 10px 24px -12px rgb(247 147 30 / 0.55);
+  transform: translateX(calc(var(--idx, 0) * -100%));
+  transition:
+    transform 0.55s cubic-bezier(0.34, 1.45, 0.5, 1),
+    opacity 0.3s ease;
+}
+.tab-pill-off {
+  opacity: 0;
+}
+
+.tab {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.2rem;
+  min-height: 3.6rem;
+  color: var(--text-3);
+  font-size: 0.66rem;
+  font-weight: 700;
+  line-height: 1;
+  text-decoration: none;
+  transition: color 0.25s ease;
+
+  &:active .tab-icon {
+    transform: scale(0.86);
+  }
+}
+
+.tab-icon {
+  position: relative;
+  display: grid;
+  place-items: center;
+  transition:
+    transform 0.3s var(--ease-out),
+    color 0.25s ease,
+    filter 0.3s ease;
+}
+
+.tab-active {
+  color: var(--ink);
+
+  .tab-icon {
+    color: #f7931e;
+    transform: translateY(-1px);
+    filter: drop-shadow(0 0 6px rgb(247 147 30 / 0.5));
+  }
+}
+
+.tab-badge {
+  position: absolute;
+  top: -0.4rem;
+  inset-inline-end: -0.7rem;
+  display: grid;
+  min-width: 1rem;
+  height: 1rem;
+  padding: 0 0.28rem;
+  place-items: center;
+  border-radius: 999px;
+  font-size: 0.6rem;
+  font-weight: 800;
+  color: #1a0f02;
+  background: #f7931e;
+  box-shadow: 0 0 0 2px var(--surface);
+}
+
+// ---------- Bottom sheet ----------
+.sheet-backdrop {
+  background: rgb(var(--shade) / 0.65);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  animation: fade-in 0.3s ease backwards;
+}
+
+.sheet {
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  margin-inline: auto;
+  max-width: 34rem;
+  padding: 0.75rem 1.1rem calc(1.25rem + env(safe-area-inset-bottom));
+  border-radius: 1.75rem 1.75rem 0 0;
+  background: linear-gradient(180deg, var(--pop), var(--card-b));
+  box-shadow:
+    inset 0 1px 0 rgb(var(--hi) / 0.12),
+    0 -30px 60px -20px rgb(var(--shade) / 0.9);
+  animation: sheet-up 0.45s var(--ease-out) backwards;
+}
+
+.sheet-grip {
+  display: block;
+  width: 2.5rem;
+  height: 0.28rem;
+  margin: 0 auto 1.1rem;
+  border-radius: 999px;
+  background: rgb(var(--tint) / 0.18);
+}
+
+.sheet-row {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.95rem 1rem;
+  border-radius: 1.1rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-2);
+  cursor: pointer;
+  background: rgb(var(--tint) / 0.04);
+  border: 1px solid rgb(var(--tint) / 0.07);
+  transition:
+    transform 0.2s var(--ease-out),
+    background 0.2s ease;
+
+  &:active {
+    transform: scale(0.98);
+    background: rgb(var(--tint) / 0.08);
+  }
+}
+.sheet-row-danger {
+  color: var(--c-rose);
+  background: rgb(205 108 118 / 0.08);
+  border-color: rgb(205 108 118 / 0.25);
+}
+
+@keyframes sheet-up {
+  from {
+    transform: translateY(100%);
+  }
+}
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+// =====================================================================
+// Laptops: shrink the whole UI a notch so cards aren't oversized
+// =====================================================================
+@media (min-width: 1024px) and (max-width: 1535.98px) {
+  html {
+    font-size: 14px;
+  }
+}
+
+button.tab {
+  background: none;
+  border: 0;
+  padding: 0;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+// page shortcuts inside the "المزيد" sheet
+.more-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 1rem 0.5rem;
+  border-radius: 1.1rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text-2);
+  text-decoration: none;
+  background: rgb(var(--tint) / 0.04);
+  border: 1px solid rgb(var(--tint) / 0.07);
+  transition:
+    transform 0.2s var(--ease-out),
+    background 0.2s ease;
+
+  app-icon {
+    color: #f7931e;
+  }
+  &:active {
+    transform: scale(0.96);
+    background: rgb(var(--tint) / 0.08);
+  }
+  &.more-active {
+    color: var(--ink);
+    background: rgb(247 147 30 / 0.12);
+    border-color: rgb(247 147 30 / 0.4);
+  }
+}
+
+// =====================================================================
+// Light theme: swap the tokens, then re-tint Tailwind's white/gray ramp (white → ink, so
+// `text-white`, `bg-white/5`, `border-white/10` all become dark-on-light equivalents).
+// =====================================================================
+html[data-theme='light'] {
+  color-scheme: light;
+  --bg: #eef0f6;
+  --ink: #15171f;
+  --text-2: #3d4152;
+  --text-3: #626679;
+  --text-4: #868a9c;
+  --tint: 28 34 70;
+  --hi: 255 255 255;
+  --shade: 62 72 120;
+  --card-a: #ffffff;
+  --card-b: #f9faff;
+  --well: #e8ebf3;
+  --well-soft: rgb(28 34 70 / 0.05);
+  --pop: #ffffff;
+  --surface: #ffffff;
+  --chip-a: #ffffff;
+  --chip-b: #eff1f8;
+  --chip2-a: #ffffff;
+  --chip2-b: #f1f3f9;
+  --glass: 255 255 255;
+  --overlay: 218 222 238;
+  --sk-a: #e4e7f0;
+  --sk-b: #f6f7fb;
+  --brand-ink: #c46500;
+  --brand-soft: #b45f00;
+  --c-emerald: #1f8a5c;
+  --c-amber: #a86a0c;
+  --c-sky: #3f6a98;
+  --c-rose: #b4434d;
+  --tone-mix: 66%;
+  --aurora-1: 0.2;
+  --aurora-2: 0.16;
+  --aurora-3: 0.16;
+  --glow-brand: 247 147 30;
+
+  // Tailwind palette
+  --color-white: #15171f;
+  --color-gray-100: #1c1e29;
+  --color-gray-200: #2c2f3d;
+  --color-gray-300: #3d4152;
+  --color-gray-400: #565a6d;
+  --color-gray-500: #6c7084;
+  --color-gray-600: #8a8ea0;
+  --color-emerald-300: #1f8a5c;
+  --color-emerald-400: #23915f;
+  --color-amber-200: #8e5a0a;
+  --color-amber-300: #a86a0c;
+  --color-amber-400: #b0710f;
+  --color-rose-300: #b4434d;
+  --color-rose-400: #c0505a;
+  --color-sky-300: #3a6a9c;
+  --color-sky-400: #3f78b0;
+}
+
+// Elements that sit on a coloured fill keep white text in both themes
+html[data-theme='light'] {
+  .avatar,
+  .logout-fill {
+    color: #fff;
+  }
+  // brand orange used as text → a deeper orange that reads on white
+  .text-\[\#f7931e\],
+  .text-\[\#ffc27a\] {
+    color: var(--brand-ink);
+  }
+  .bg-\[\#f7931e\] {
+    color: #1a0f02;
+  }
+
+  .glass-card {
+    box-shadow:
+      inset 0 1px 0 0 rgb(255 255 255 / 0.9),
+      0 1px 2px rgb(var(--shade) / 0.1),
+      0 18px 34px -20px rgb(var(--shade) / 0.35);
+  }
+  .inset-well {
+    box-shadow: inset 0 2px 5px rgb(var(--shade) / 0.18);
+  }
+  .keycap {
+    background: linear-gradient(160deg, #fff, #f1f3fa);
+    box-shadow:
+      inset 0 1px 0 #fff,
+      0 6px 14px -8px rgb(var(--shade) / 0.5);
+  }
+  .tabbar {
+    box-shadow:
+      inset 0 0 0 1px rgb(var(--tint) / 0.08),
+      0 18px 40px -14px rgb(var(--shade) / 0.5);
+  }
+  .tab-badge {
+    color: #fff;
+  }
+  .tab-active,
+  .more-tile.more-active {
+    color: var(--ink);
+  }
+  .more-tile {
+    color: var(--text-2);
+  }
+  .sheet-row {
+    color: var(--ink);
+  }
+}
+
+// ---------- Theme toggle ----------
+.theme-icon {
+  position: relative;
+  display: grid;
+  place-items: center;
+
+  .t-moon,
+  .t-sun {
+    grid-area: 1 / 1;
+    transition:
+      transform 0.55s var(--ease-out),
+      opacity 0.35s ease;
+  }
+  .t-sun {
+    opacity: 0;
+    transform: rotate(-90deg) scale(0.4);
+  }
+  &.is-light {
+    .t-moon {
+      opacity: 0;
+      transform: rotate(90deg) scale(0.4);
+    }
+    .t-sun {
+      opacity: 1;
+      transform: none;
+      color: var(--brand-ink);
+    }
+  }
+}
+
+// Theme switch: the new theme is revealed as a circle growing from the toggle (clip-path is
+// animated from ThemeService). Both snapshots are plain layers, so nothing re-renders mid-way.
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+::view-transition-old(root) {
+  z-index: 1;
+}
+::view-transition-new(root) {
+  z-index: 2;
+}
+
+// freeze the page's own looping animations while the snapshots are captured
+html.theme-vt .aurora i,
+html.theme-vt .sidebar::after {
+  animation-play-state: paused;
+}

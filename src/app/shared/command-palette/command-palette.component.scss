@@ -1,0 +1,120 @@
+:host {
+  display: contents;
+}
+
+.backdrop {
+  background: radial-gradient(ellipse at 50% 20%, rgb(247 147 30 / 0.12), rgb(var(--overlay) / 0.78) 70%);
+  backdrop-filter: blur(10px) saturate(1.2);
+  -webkit-backdrop-filter: blur(10px) saturate(1.2);
+  animation: fade-in 0.25s ease backwards;
+}
+
+.panel-wrap {
+  animation: palette-in 0.45s var(--ease-out) backwards;
+}
+
+// animated conic border around the panel
+.panel {
+  padding: 1.5px;
+  border-radius: 1.4rem;
+  background: conic-gradient(
+    from var(--angle, 0deg),
+    rgb(var(--tint) / 0.08) 0 30%,
+    #f7931e 50%,
+    #ffd58a 58%,
+    rgb(var(--tint) / 0.08) 75%
+  );
+  box-shadow:
+    0 0 60px -16px rgb(247 147 30 / 0.3),
+    0 40px 80px -20px rgb(var(--shade) / 0.9);
+  animation: spin-border 6s linear infinite;
+}
+
+.panel-inner {
+  background: linear-gradient(180deg, var(--pop), var(--card-b));
+}
+
+@property --angle {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 0deg;
+}
+
+@keyframes spin-border {
+  to {
+    --angle: 360deg;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes palette-in {
+  from {
+    opacity: 0;
+    transform: translateY(-18px) scale(0.95);
+    filter: blur(6px);
+  }
+}
+
+.kbd {
+  display: inline-grid;
+  min-width: 1.4rem;
+  height: 1.4rem;
+  place-items: center;
+  padding: 0 0.35rem;
+  border-radius: 0.4rem;
+  font-family: ui-monospace, monospace;
+  font-size: 0.68rem;
+  color: var(--text-3);
+  background: rgb(var(--tint) / 0.05);
+  border: 1px solid rgb(var(--tint) / 0.1);
+  box-shadow: 0 1px 0 rgb(var(--shade) / 0.5);
+}
+
+.result {
+  position: relative;
+  border: 0;
+  font: inherit;
+  color: var(--text-2);
+  background: transparent;
+  cursor: pointer;
+  animation: result-in 0.35s var(--ease-out) calc(0.12s + var(--i, 0) * 28ms) backwards;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    transform 0.3s var(--ease-out);
+
+  .icon {
+    background: rgb(var(--tint) / 0.05);
+    box-shadow: inset 0 0 0 1px rgb(var(--tint) / 0.07);
+    transition:
+      transform 0.35s var(--ease-out),
+      background 0.2s ease,
+      box-shadow 0.2s ease;
+  }
+
+  &.on {
+    color: var(--ink);
+    transform: translateX(-4px);
+    background: linear-gradient(270deg, rgb(247 147 30 / 0.2), rgb(247 147 30 / 0.03) 80%);
+    box-shadow: inset 0 0 0 1px rgb(247 147 30 / 0.3);
+
+    .icon {
+      transform: scale(1.05);
+      background: rgb(247 147 30 / 0.16);
+      box-shadow:
+        inset 0 0 0 1px rgb(247 147 30 / 0.45);
+    }
+  }
+}
+
+@keyframes result-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}

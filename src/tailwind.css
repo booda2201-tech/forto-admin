@@ -1,0 +1,17 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Cairo", ui-sans-serif, system-ui, sans-serif;
+  --color-ink: #0a0a0a;
+  --color-brand: #f7931e;
+  --color-brand-light: #ffc27a;
+
+  /* Muted, desaturated semantic palette (replaces Tailwind's neon defaults) */
+  --color-emerald-300: #9fd1b8;
+  --color-emerald-400: #70be96;
+  --color-amber-200: #ecd5a8;
+  --color-amber-300: #e6bb72;
+  --color-amber-400: #e2aa50;
+  --color-rose-300: #dc9aa1;
+  --color-rose-400: #cd6c76;
+}

@@ -1,0 +1,238 @@
+:host {
+  display: block;
+}
+
+// ---------- shared bits ----------
+.price {
+  color: color-mix(in srgb, rgb(var(--tone, 247 147 30)) var(--tone-mix), #000);
+}
+
+.badge {
+  --tone: 156 163 175;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+  color: color-mix(in srgb, rgb(var(--tone)) var(--tone-mix), #000);
+  background: rgb(var(--tone) / 0.1);
+  box-shadow: inset 0 0 0 1px rgb(var(--tone) / 0.28);
+}
+
+.badge-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.badge-live .badge-dot,
+.badge-live.badge-dot {
+  animation: dot-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes dot-pulse {
+  50% {
+    transform: scale(1.7);
+    opacity: 0.45;
+  }
+}
+
+// ---------- cards (services + products) ----------
+.card {
+  --tone: 247 147 30;
+  cursor: default;
+
+  &:hover {
+    transform: translateY(-4px);
+    border-color: rgb(var(--tone) / 0.4);
+    box-shadow:
+      inset 0 1px 0 0 rgb(var(--hi) / 0.06),
+      0 2px 0 0 rgb(var(--shade) / 0.45),
+      0 26px 36px -22px rgb(var(--tone) / 0.3);
+  }
+}
+
+.card-orb {
+  position: absolute;
+  top: -3.5rem;
+  inset-inline-end: -3.5rem;
+  width: 10rem;
+  height: 10rem;
+  border-radius: 999px;
+  background: rgb(var(--tone) / 0.14);
+  filter: blur(48px);
+  pointer-events: none;
+  opacity: 0.45;
+  transition:
+    opacity 0.3s ease,
+    transform 0.6s var(--ease-out);
+}
+.card:hover .card-orb {
+  opacity: 0.8;
+  transform: scale(1.15);
+}
+
+.tile {
+  color: color-mix(in srgb, rgb(var(--tone)) var(--tone-mix), #000);
+  background: linear-gradient(145deg, rgb(var(--tone) / 0.22), rgb(var(--tone) / 0.05));
+  box-shadow:
+    inset 0 0 0 1px rgb(var(--tone) / 0.3);
+  transition: transform 0.5s var(--ease-out);
+}
+.card:hover .tile {
+  transform: scale(1.06);
+}
+
+// featured card: animated conic border
+.card-top {
+  border-color: transparent;
+  background:
+    linear-gradient(180deg, var(--card-a), var(--card-b)) padding-box,
+    conic-gradient(from var(--angle, 0deg), transparent 0 55%, rgb(var(--tone)) 80%, #ffd58a 90%, transparent) border-box;
+  animation: reveal 0.7s var(--ease-out) calc(0.3s + var(--i, 0) * 80ms) backwards,
+    spin-border 5s linear infinite;
+}
+
+@property --angle {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 0deg;
+}
+
+@keyframes spin-border {
+  to {
+    --angle: 360deg;
+  }
+}
+
+.edit-btn {
+  cursor: pointer;
+  color: var(--ink);
+  background: rgb(var(--glass) / 0.72);
+  border: 1px solid rgb(var(--tint) / 0.14);
+  backdrop-filter: blur(8px);
+  transition:
+    color 0.2s ease,
+    background 0.2s ease;
+
+  &:hover,
+  &:focus-visible {
+    color: #f7931e;
+    background: rgb(var(--glass) / 0.92);
+  }
+}
+
+.ribbon {
+  position: absolute;
+  top: 1rem;
+  inset-inline-start: -2.2rem;
+  width: 9rem;
+  padding: 0.15rem 0;
+  text-align: center;
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: #3a2008;
+  background: linear-gradient(180deg, #ffd58a, #d9962f);
+  box-shadow: 0 2px 8px rgb(var(--shade) / 0.5);
+  transform: rotate(-45deg);
+}
+.ribbon-out {
+  color: #fff;
+  background: linear-gradient(180deg, #cd6c76, #8f2f3b);
+}
+
+.card-out {
+  filter: saturate(0.55);
+}
+
+// product ring sitting over the photo gets a solid backdrop so it stays readable
+.ring-bg {
+  border-radius: 50%;
+  background: var(--surface);
+  box-shadow: 0 0 0 4px var(--surface), 0 8px 20px -6px rgb(var(--shade) / 0.7);
+}
+
+.ring {
+  stroke-linecap: round;
+  filter: drop-shadow(0 0 3px rgb(var(--tone) / 0.35));
+  animation: ring-in 1.2s var(--ease-out) backwards;
+}
+
+@keyframes ring-in {
+  from {
+    stroke-dasharray: 0 var(--len);
+  }
+}
+
+// ---------- visits ledger ----------
+.plate {
+  border: 1px solid rgb(var(--tint) / 0.1);
+  background: rgb(var(--tint) / 0.04);
+  letter-spacing: 0.03em;
+}
+
+.v-row {
+  --tone: 156 163 175;
+  animation: reveal 0.55s var(--ease-out) calc(0.45s + var(--i, 0) * 60ms) backwards;
+  transition: background 0.25s ease;
+
+  &:hover {
+    background: rgb(var(--tint) / 0.03);
+  }
+}
+
+// ---------- kanban ----------
+// each status is a recessed "lane" so the board reads as three clear columns
+.lane {
+  --tone: 156 163 175;
+  background: rgb(var(--tint) / 0.02);
+  border: 1px solid rgb(var(--tint) / 0.05);
+  box-shadow: inset 0 2px 10px rgb(var(--shade) / 0.35);
+}
+
+.lane-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgb(var(--tone));
+}
+
+.count {
+  color: color-mix(in srgb, rgb(var(--tone)) var(--tone-mix), #000);
+  background: rgb(var(--tone) / 0.12);
+}
+
+.k-avatar {
+  color: color-mix(in srgb, rgb(var(--tone)) var(--tone-mix), #000);
+  background: rgb(var(--tone) / 0.12);
+  box-shadow: inset 0 0 0 1px rgb(var(--tone) / 0.28);
+}
+
+.k-cancelled {
+  opacity: 0.6;
+}
+
+.k-card {
+  animation: reveal 0.6s var(--ease-out) calc(0.55s + var(--i, 0) * 90ms) backwards;
+
+  &:hover {
+    transform: translateY(-4px);
+    border-color: rgb(var(--tone) / 0.4);
+  }
+}
+
+.time {
+  font-size: 1.05rem;
+  color: color-mix(in srgb, rgb(var(--tone)) var(--tone-mix), #000);
+}
+
+.empty {
+  border: 1px dashed rgb(var(--tint) / 0.1);
+}

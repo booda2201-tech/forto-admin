@@ -1,0 +1,84 @@
+.avatar {
+  background: linear-gradient(135deg, rgb(247 147 30 / 0.45), rgb(255 194 122 / 0.12));
+  box-shadow:
+    inset 0 0 0 1px rgb(247 147 30 / 0.4),
+    0 0 0 0 transparent;
+}
+
+.status {
+  &[data-status='completed'] {
+    color: var(--c-emerald);
+    background: rgb(112 190 150 / 0.1);
+    box-shadow: inset 0 0 0 1px rgb(112 190 150 / 0.3);
+  }
+  &[data-status='in-progress'] {
+    color: #f7931e;
+    background: rgb(247 147 30 / 0.12);
+    box-shadow: inset 0 0 0 1px rgb(247 147 30 / 0.4);
+  }
+  &[data-status='booked'] {
+    color: var(--c-sky);
+    background: rgb(140 163 190 / 0.1);
+    box-shadow: inset 0 0 0 1px rgb(140 163 190 / 0.3);
+  }
+  &[data-status='cancelled'] {
+    color: var(--text-3);
+    background: rgb(var(--tint) / 0.05);
+    box-shadow: inset 0 0 0 1px rgb(var(--tint) / 0.12);
+  }
+}
+
+// Timeline rail (right side in RTL)
+.timeline {
+  position: relative;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset-block: 0.5rem;
+    inset-inline-start: 0.6875rem;
+    width: 2px;
+    background: linear-gradient(to bottom, rgb(247 147 30 / 0.6), rgb(var(--tint) / 0.06));
+  }
+}
+
+.dot {
+  position: absolute;
+  inset-inline-start: 0;
+  top: 1.6rem;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  background: var(--bg);
+  border: 2px solid rgb(var(--dot, 247 147 30));
+  box-shadow: 0 0 0 3px rgb(var(--dot, 247 147 30) / 0.15);
+
+  &::after {
+    content: '';
+    width: 0.4rem;
+    height: 0.4rem;
+    border-radius: 999px;
+    background: rgb(var(--dot, 247 147 30));
+  }
+
+  &[data-status='completed'] {
+    --dot: 112 190 150;
+  }
+  &[data-status='in-progress'] {
+    --dot: 247 147 30;
+  }
+  &[data-status='booked'] {
+    --dot: 140 163 190;
+  }
+  &[data-status='cancelled'] {
+    --dot: 113 113 122;
+  }
+}
+
+.car-chip.active {
+  border-color: rgb(247 147 30 / 0.55);
+  background: rgb(247 147 30 / 0.12);
+  box-shadow: none;
+}
